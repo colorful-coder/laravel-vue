@@ -2,62 +2,38 @@
 
 namespace App\Http\Controllers;
 
-use App\Products;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
-use Log;
+use App\Products;
+use App\Http\Requests\ProductRequest;
 
 class ProductController extends Controller
 {
     public function index()
     {
-        return $products = Products::all();
+        return Products::all();
     }
-    public function store(Request $request)
+
+    public function store(ProductRequest $request)
     {
-        //validate data
-        $validator = Validator::make($request->all(), [
-            'name' => 'required',
-            'price' => 'required|numeric',
-        ]);
-        if ($validator->fails()) {
-            Log::info($validator->errors());
-            return response()->json([
-                'success' => false,
-                'message' => 'Please fill in the blank fields',
-                'data' => $validator->errors(),
-            ],400);
-        } else {
-            Products::create($request->all());
-        }
+        $product = Products::create($request->only('name', 'price'));
+        return $product;
     }
-    public function edit($id)
+
+    public function show($id)
     {
-        return Products::whereId($id)->first();
+        $product = Products::find($id);
+        return $product;
     }
-    public function update($id, Request $request)
+
+    public function update(ProductRequest $request, $id)
     {
-        //validate data
-        $validator = Validator::make($request->all(), [
-            'name' => 'required',
-            'price' => 'required',
-        ]);
-        if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Please fill in the blank fields',
-                'data' => $validator->errors(),
-            ], 400);
-        } else {
-            $updateProduct = Products::whereId($id)->update([
-                'name' => $request->name,
-                'price' => $request->price
-            ]);
-            return $updateProduct;
-        }
+        $product = Products::find($id);
+        $product->update($request->only('name', 'price'));
+        return $product;
     }
+
     public function destroy($id)
     {
-        $product = Products::find($id)->delete();
+        Products::find($id)->delete();
     }
 }
